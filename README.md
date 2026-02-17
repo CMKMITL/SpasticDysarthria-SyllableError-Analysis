@@ -16,7 +16,7 @@ This repository contains Python code for analyzing acoustic features of syllable
 
 ## License and Citation
 
-No open‑source license is provided at this time, as the code is intended for academic use only. If you use this code for academic purposes, please cite our forthcoming article (**“[To be announced]”**). Feel free to contact us for citation details.
+This project is licensed under the Apache 2.0 License — see the LICENSE file for details. If you use this code for academic purposes, please cite our forthcoming article (**“[To be announced]”**). Feel free to contact us for citation details.
 
 ## Data Availability
 
