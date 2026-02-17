@@ -13,6 +13,10 @@ This repository contains Python code for analyzing acoustic features of syllable
 1. **Clone the repository**:  
    ```bash
    git clone https://github.com/CMKMITL/SpasticDysarthria-SyllableError-Analysis.git
+2. **Install dependencies**:
+   Create a Python environment and install required packages (e.g., pandas, scikit‑learn, numpy, matplotlib, seaborn).
+3. **Run notebooks**:
+   Open Jupyter Notebook or JupyterLab and execute **`Syllableerror_scoring.ipynb`** to generate the error scores. Then run **`LogisticRegressionModel_train-test_randomstatevariation.ipynb`** to train 10 000 logistic‑regression models and visualize results. Finally run **`PermutationTest_logisticregressionmodel.ipynb`** to compute p‑values.
 
 ## License and Citation
 
