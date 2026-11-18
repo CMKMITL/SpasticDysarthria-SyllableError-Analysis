@@ -1,27 +1,60 @@
-# SpasticDysarthria‑SyllableError‑Analysis
+# SpasticDysarthria-SyllableError-Analysis
 
-This repository contains Python code for analyzing acoustic features of syllables produced by people with spastic dysarthria and healthy controls. It supports a research study that evaluates syllable‑level pronunciation errors and builds classification models to distinguish between the two groups.
+Python notebooks and syllable-segmented automatic speech recognition (ASR) transcriptions for a study of Thai spastic dysarthria involving 37 patients and 37 healthy controls. The revised scoring workflow uses Apple Siri transcriptions to generate raw and syllable-normalized error scores. These are transcription-based features, not direct acoustic measurements or expert perceptual ratings of articulation.
 
-## Contents
+## Current scoring notebook and dataset
 
-- **`Syllableerror_scoring.ipynb`** — Computes syllable‑level error scores by counting misspellings in automatic speech‑recognition (ASR) transcripts for each sentence.
-- **`LogisticRegressionModel_train-test_randomstatevariation.ipynb`** — Builds logistic‑regression classifiers with **random state shuffling**. We train 10 000 models using different random seeds for train/test splits, then compute the median area under the ROC curve (AUC) and illustrate the distribution in violin plots.
-- **`PermutationTest_logisticregressionmodel.ipynb`** — Performs permutation tests to assess the statistical significance of the observed median AUC values. It compares the empirical AUC distribution against distributions derived from label‑shuffled data and computes p‑values. 
+- [Syllableerror_scoring.ipynb](Syllableerror_scoring.ipynb): updated from `01_Syllableerror_scoring_normalized.ipynb`; computes four raw error counts and four normalized scores.
+- [syllableseparation_apple_corrected.csv](syllableseparation_apple_corrected.csv): syllable-level transcription dataset for all 74 participants.
+- Output: `Syllableerror_scores_raw_and_normalized.csv`, containing participant ID, disease label, `error_1`–`error_4`, and `error_rate_1`–`error_rate_4`. Disease is coded 1 for patients and 0 for controls.
 
-## Usage
+## Scoring procedure
 
-1. **Clone the repository**:  
-   ```bash
-   git clone https://github.com/CMKMITL/SpasticDysarthria-SyllableError-Analysis.git
-2. **Install dependencies**:
-   Create a Python environment and install required packages (e.g., pandas, scikit‑learn, numpy, matplotlib, seaborn).
-3. **Run notebooks**:
-   Open Jupyter Notebook or JupyterLab and execute **`Syllableerror_scoring.ipynb`** to generate the error scores. Then run **`LogisticRegressionModel_train-test_randomstatevariation.ipynb`** to train 10 000 logistic‑regression models and visualize results. Finally run **`PermutationTest_logisticregressionmodel.ipynb`** to compute p‑values.
+Transcripts must already be segmented and aligned to target syllables before running the notebook. The notebook does not perform ASR, segmentation, or alignment.
 
-## License and Citation
+For each target position, the code checks exact membership in a predefined list of accepted transcriptions. An accepted entry contributes zero errors; an unaccepted or absent target syllable contributes one error. Each additional-syllable slot contributes one error when its value is not the string `0`. A total of zero indicates no counted errors.
 
-This project is licensed under the Apache 2.0 License — see the LICENSE file for details. If you use this code for academic purposes, please cite our forthcoming article (**“[To be announced]”**). Feel free to contact us for citation details.
+The accepted lists in Step 2 are the operational scoring criteria. They include selected alternative transcriptions and should not all be interpreted as strictly identical pronunciations. The code does not independently evaluate phonetic similarity, consonant accuracy, or the audio signal.
 
-## Data Availability
+| Sentence | Feature number | Target syllables | Normalized score |
+| --- | --- | --- | --- |
+| LBP | 1 | 8 | raw error count / 8 |
+| LAP | 2 | 8 | raw error count / 8 |
+| VP | 3 | 7 | raw error count / 7 |
+| MP | 4 | 11 | raw error count / 11 |
 
-The original data file containing ASR-transcribed syllables for all subjects is not publicly shared due to privacy and data protection regulations in accordance with the ethical review board. Access may be granted upon reasonable request to the primary or the corresponding author.
+Scores express errors per target syllable. Additional-syllable errors are included, so normalized scores are not mathematically restricted to 0–1.
+
+The pooled sentence score used in the revised downstream analysis is the sum of the four raw error counts divided by 34. This scoring notebook exports the four individual scores; it does not calculate the pooled score or ROC analyses.
+
+## Run in Google Colab
+
+1. Open [the scoring notebook in Colab](https://colab.research.google.com/github/CMKMITL/SpasticDysarthria-SyllableError-Analysis/blob/main/Syllableerror_scoring.ipynb).
+2. Download the CSV linked above.
+3. Run Step 1 and select that CSV when the upload prompt appears.
+4. Run the remaining cells in order. The final scoring cell downloads `Syllableerror_scores_raw_and_normalized.csv`.
+
+The notebook uses Python, pandas, SciPy, and Google Colab's file upload/download utilities. For local Jupyter use, replace the Colab upload with `pd.read_csv("syllableseparation_apple_corrected.csv")` and omit the Colab download call; `to_csv` already saves the output.
+
+### Input layout
+
+Keep the supplied CSV column order unchanged: the first two columns contain participant ID and disease label, followed by sentence blocks selected by column positions `2:11`, `11:20`, `20:29`, and `29:45`. Columns beginning with `s` contain aligned target-syllable transcriptions; those beginning with `e` contain additional-syllable slots. Preserve the supplied zero placeholders. Blank additional-syllable slots are not treated as zero by this implementation.
+
+## Earlier analysis notebooks
+
+The following notebooks are retained from the earlier analysis and have not been updated as part of this scoring revision:
+
+- `LogisticRegressionModel_train-test_randomstatevariation.ipynb`
+- `PermutationTest_logisticregressionmodel.ipynb`
+
+They should not be used as the implementation of the revised individual/pooled ROC analysis or the revised 50-split combined model. Updated downstream analysis notebooks will be documented separately when uploaded.
+
+## Data availability and citation
+
+The complete syllable-segmented transcription CSV is available in this repository. It is a text dataset and does not contain the source audio. CSV files do not preserve the pink error highlighting shown in Supplementary Table S1.
+
+Publication citation details will be added when available.
+
+## License
+
+The earlier README stated Apache 2.0 licensing, but this repository currently contains no LICENSE file. Please contact the repository maintainers for licensing clarification.
