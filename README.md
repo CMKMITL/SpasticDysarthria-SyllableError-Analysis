@@ -1,60 +1,84 @@
-# SpasticDysarthria-SyllableError-Analysis
+# Spastic dysarthria: ASR syllable-error analysis
 
-Python notebooks and syllable-segmented automatic speech recognition (ASR) transcriptions for a study of Thai spastic dysarthria involving 37 patients and 37 healthy controls. The revised scoring workflow uses Apple Siri transcriptions to generate raw and syllable-normalized error scores. These are transcription-based features, not direct acoustic measurements or expert perceptual ratings of articulation.
+Reproducible analysis for **Automatic Speech Recognition and Phonetics-Informed Sentence Design for Spastic Dysarthria and Corticobulbar Lesion Detection**.
 
-## Current scoring notebook and dataset
+The study includes 37 patients and 37 controls. Four Thai sentences target labial (LBP), lingual-alveolar/palatal (LAP), velopharyngeal (VP), and mixed (MP) consonant groups. Apple Siri transcriptions are converted to syllable-error scores, then evaluated directly by ROC analysis. A combined logistic regression model is a secondary analysis.
 
-- [Syllableerror_scoring.ipynb](Syllableerror_scoring.ipynb): updated from `01_Syllableerror_scoring_normalized.ipynb`; computes four raw error counts and four normalized scores.
-- [syllableseparation_apple_corrected.csv](syllableseparation_apple_corrected.csv): syllable-level transcription dataset for all 74 participants.
-- Output: `Syllableerror_scores_raw_and_normalized.csv`, containing participant ID, disease label, `error_1`–`error_4`, and `error_rate_1`–`error_rate_4`. Disease is coded 1 for patients and 0 for controls.
+## Notebooks
 
-## Scoring procedure
+Run the notebooks in numerical order from this repository folder. Each has numbered step headings; generated tables and figures are saved in `results/`.
 
-Transcripts must already be segmented and aligned to target syllables before running the notebook. The notebook does not perform ASR, segmentation, or alignment.
+| Notebook | Manuscript outputs |
+| --- | --- |
+| [01 — Syllable-error scoring](01_Syllable_error_scoring.ipynb) | Raw and normalized scores for all 74 participants |
+| [02 — Score comparisons](02_Score_comparisons.ipynb) | Figure 2; Supplementary Table S3 |
+| [03 — Individual and pooled ROC analysis](03_Individual_and_pooled_ROC.ipynb) | Figure 3; Table 2; paired AUC comparisons |
+| [04 — Combined logistic regression](04_Combined_logistic_model.ipynb) | Figure 4; Supplementary Figure S2; Supplementary Tables S4–S5 |
 
-For each target position, the code checks exact membership in a predefined list of accepted transcriptions. An accepted entry contributes zero errors; an unaccepted or absent target syllable contributes one error. Each additional-syllable slot contributes one error when its value is not the string `0`. A total of zero indicates no counted errors.
+Earlier individual-sentence logistic regression and permutation-test notebooks have been removed from the current version. They remain available in Git history.
 
-The accepted lists in Step 2 are the operational scoring criteria. They include selected alternative transcriptions and should not all be interpreted as strictly identical pronunciations. The code does not independently evaluate phonetic similarity, consonant accuracy, or the audio signal.
+## Run the analysis
 
-| Sentence | Feature number | Target syllables | Normalized score |
+Use Python 3.12 or 3.13. Install the pinned analysis packages in a virtual environment:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python run_analysis.py
+```
+
+On Windows, activate the environment with `.venv\Scripts\activate` instead. The runner executes the notebook code without requiring Jupyter. For interactive use, install JupyterLab in the same environment (`python -m pip install jupyterlab`) and open the notebooks there.
+
+The complete run includes **100 repetitions of nested five-fold validation within each of 50 training subsets** and can take substantial time. To regenerate the final fitted models and all supported manuscript figures/tables without repeating that separate validation calculation:
+
+```bash
+python run_analysis.py --skip-nested
+```
+
+This option still refits all 50 final models. It does not substitute stored predictions or reduce the number of train–test splits. In notebook 04, `RUN_NESTED_CV` controls the same optional omission and defaults to `True`.
+
+## Data and scoring
+
+- [Aligned ASR transcriptions](syllableseparation_apple_corrected.csv): the existing public syllable-level CSV for all 74 participants.
+- `Syllableerror_scores_raw_and_normalized.csv`: generated locally by notebook 01; run that notebook before the downstream analyses.
+- `sub_id` identifies participants; `disease` is 1 for patients and 0 for controls.
+- `s1_1`, `s1_2`, etc. contain aligned target syllables; `e1_1`, etc. are additional-syllable slots. Preserve the supplied zero placeholders.
+
+| Sentence | Raw score | Normalized score | Target syllables |
 | --- | --- | --- | --- |
-| LBP | 1 | 8 | raw error count / 8 |
-| LAP | 2 | 8 | raw error count / 8 |
-| VP | 3 | 7 | raw error count / 7 |
-| MP | 4 | 11 | raw error count / 11 |
+| LBP | `error_1` | `error_rate_1` | 8 |
+| LAP | `error_2` | `error_rate_2` | 8 |
+| VP | `error_3` | `error_rate_3` | 7 |
+| MP | `error_4` | `error_rate_4` | 11 |
 
-Scores express errors per target syllable. Additional-syllable errors are included, so normalized scores are not mathematically restricted to 0–1.
+The predefined accepted-transcription lists are shown in notebook 01. Each unaccepted or absent target syllable counts as one error. Each additional-syllable slot counts as one error unless its value is `0`. These are transcription-based scoring rules, not direct acoustic judgments. The code starts from already segmented and aligned transcriptions; it does not perform ASR or alignment.
 
-The pooled sentence score used in the revised downstream analysis is the sum of the four raw error counts divided by 34. This scoring notebook exports the four individual scores; it does not calculate the pooled score or ROC analyses.
+Normalized scores equal raw errors divided by target syllable count. Additional errors are included, so the formula is not mathematically restricted to 0–1. The pooled score is **the sum of the four raw error counts divided by 34**, not the unweighted mean of the four normalized scores.
 
-## Run in Google Colab
+## Analysis details
 
-1. Open [the scoring notebook in Colab](https://colab.research.google.com/github/CMKMITL/SpasticDysarthria-SyllableError-Analysis/blob/main/Syllableerror_scoring.ipynb).
-2. Download the CSV linked above.
-3. Run Step 1 and select that CSV when the upload prompt appears.
-4. Run the remaining cells in order. The final scoring cell downloads `Syllableerror_scores_raw_and_normalized.csv`.
+- Individual and pooled ROC analyses use all 74 participants. DeLong intervals account for ties, and paired DeLong comparisons use Holm correction across all 10 pairs.
+- Youden thresholds classify scores at or above the threshold as positive. Ties select the highest finite threshold. Full-cohort threshold metrics are apparent performance estimates.
+- The combined model uses L2 logistic regression, training-only standardization, 50 stratified 70:30 splits (seeds 42–91), and the original 17-value C grid. Final five-fold grid search is separate from repeated nested validation.
+- The representative split is the earliest split with test AUC closest to the median. Its comparisons use the same 23 test participants and Holm correction across five model-versus-score tests. These results and intervals are conditional on the selected split.
+- Supplementary Table S4 uses independent Jeffreys Beta(0.5, 0.5) priors and 200,000 posterior draws (seed 42). Table S5 describes coefficient variation across overlapping partitions; no significance tests across split rows are performed.
+- The reported combined-AUC numerical summary retains the original empirical quartiles. The violin plot retains the original linearly interpolated quartiles.
 
-The notebook uses Python, pandas, SciPy, and Google Colab's file upload/download utilities. For local Jupyter use, replace the Colab upload with `pd.read_csv("syllableseparation_apple_corrected.csv")` and omit the Colab download call; `to_csv` already saves the output.
+**Figure 2 reporting note:** the uploaded code and reported p-values use **two-sided Mann–Whitney tests with Holm correction across four sentences** (VP: 0.002; MP: 0.004 after rounding). Notebook 02 preserves this implementation. The submitted Methods wording “one-sided” is inconsistent with those results and should be clarified; the repository does not silently change the analysis to match that wording.
 
-### Input layout
+## Reproducibility scope
 
-Keep the supplied CSV column order unchanged: the first two columns contain participant ID and disease label, followed by sentence blocks selected by column positions `2:11`, `11:20`, `20:29`, and `29:45`. Columns beginning with `s` contain aligned target-syllable transcriptions; those beginning with `e` contain additional-syllable slots. Preserve the supplied zero placeholders. Blank additional-syllable slots are not treated as zero by this implementation.
+Figures are exported as PNG and PDF; tables and underlying numerical results are exported as CSV. Plot layout and fonts may differ from the final assembled publication figures.
 
-## Earlier analysis notebooks
+The public transcription data support the four notebooks above. **Table 1 requires restricted demographic/clinical data. Supplementary Table S1 requires the separate repeated-transcription input files, which are not included here.** Figure 1 is a recruitment diagram, Supplementary Figure S1 is an assessment instrument, and Supplementary Table S2 is a formatted transcription excerpt; these are not generated by the four analysis notebooks. The public CSV supplies the underlying transcriptions for Table S2, without its cell highlighting.
 
-The following notebooks are retained from the earlier analysis and have not been updated as part of this scoring revision:
+Original speech recordings and clinical information are not distributed in this repository. Access requests should be directed to the corresponding author or the Chulalongkorn Cognitive Clinical & Computational Neuroscience Center, subject to the study's privacy and institutional requirements.
 
-- `LogisticRegressionModel_train-test_randomstatevariation.ipynb`
-- `PermutationTest_logisticregressionmodel.ipynb`
+## Verification
 
-They should not be used as the implementation of the revised individual/pooled ROC analysis or the revised 50-split combined model. Updated downstream analysis notebooks will be documented separately when uploaded.
+The cleaned scoring was checked against the original scoring code for every participant and sentence. All four notebooks were executed, including all 50 final model fits, using Python 3.12.14 and the pinned numerical packages. The checks reproduced the primary AUCs, combined AUC median/IQR, representative split 29 (seed 70), its threshold and counts, Bayesian summaries, and reported coefficient medians/IQRs.
 
-## Data availability and citation
+Two split-level tuning selections (33 and 50) differed from the stored outputs of the original Python 3.13.2 notebook in this execution environment. Running the original fitting code here produced the same selections as the cleaned code. All 50 combined test AUCs and the manuscript-reported coefficient medians/IQRs were preserved, but exact coefficient means and individual fitted probabilities are not identical. No C values or predictions are hard-coded to conceal this difference.
 
-The complete syllable-segmented transcription CSV is available in this repository. It is a text dataset and does not contain the source audio. CSV files do not preserve the pink error highlighting shown in Supplementary Table S1.
-
-Publication citation details will be added when available.
-
-## License
-
-The earlier README stated Apache 2.0 licensing, but this repository currently contains no LICENSE file. Please contact the repository maintainers for licensing clarification.
+The nested-validation code was also executed for all 100 repetitions of the first training subset. The full 50 × 100 procedure remains the default, but all 5,000 repetitions were not rerun during this cleanup. A `--skip-nested` run is not a complete rerun of that procedure.

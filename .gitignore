@@ -1,0 +1,6 @@
+.venv/
+.ipynb_checkpoints/
+__pycache__/
+results/
+Syllableerror_scores_raw_and_normalized.csv
+.DS_Store
