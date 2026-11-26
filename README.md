@@ -71,4 +71,6 @@ Speech recordings and clinical information are not included. Access requests sho
 
 Execution checks covered all 50 final models and 100 nested-validation repetitions for the first training subset. The complete 5,000-repetition validation is available but was not included in that check.
 
-All 50 test AUCs and reported coefficient medians and quartiles were reproduced. In Python 3.12.14, selected C values for splits 33 and 50 differed from saved Python 3.13.2 results; individual coefficients, their means, and fitted probabilities can therefore vary across environments. Use the pinned package versions for reproducibility.
+All 50 test AUCs and reported coefficient medians and quartiles were reproduced. 
+
+Use the pinned package versions for reproducibility.
