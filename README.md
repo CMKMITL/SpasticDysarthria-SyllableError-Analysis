@@ -28,7 +28,7 @@ python run_analysis.py
 
 On Windows, activate with `.venv\Scripts\activate`. For interactive use, install JupyterLab in the same environment with `python -m pip install jupyterlab`.
 
-The complete run includes 100 repetitions of nested five-fold validation within each of 50 training subsets. To generate the figures and tables, including all 50 final model fits, without repeating this separate validation calculation:
+The complete analysis includes 100 repetitions of nested five-fold cross-validation within each of 50 training subsets (5,000 repetitions in total). To generate the figures and tables, including all 50 final model fits, without repeating this separate validation calculation:
 
 ```bash
 python run_analysis.py --skip-nested
@@ -68,9 +68,5 @@ Normalized scores equal raw errors divided by target syllable count. Additional 
 The notebooks generate the outputs listed above. Table 1 requires restricted clinical data, and Supplementary Table S1 requires separate repeat-transcription inputs. Figure 1, Supplementary Figure S1, and the formatted transcription excerpt in Supplementary Table S2 are not generated here. The public CSV provides the transcriptions underlying Table S2.
 
 Speech recordings and clinical information are not included. Access requests should be directed to the corresponding author or the Chulalongkorn Cognitive Clinical & Computational Neuroscience Center, subject to institutional privacy requirements.
-
-Execution checks covered all 50 final models and 100 nested-validation repetitions for the first training subset. The complete 5,000-repetition validation is available but was not included in that check.
-
-All 50 test AUCs and reported coefficient medians and quartiles were reproduced. 
 
 Use the pinned package versions for reproducibility.
